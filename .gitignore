@@ -2,8 +2,15 @@
 .idea/
 *.iml
 
+# 로컬 문서·이미지
 docs/*.png
+docs/project-progress.md
 
+# Spring Boot / Maven
 backend/target/
 backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-local.properties
+
+# 환경변수
 .env
+.env.*

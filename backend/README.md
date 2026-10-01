@@ -5,7 +5,7 @@ Java 21과 Spring Boot로 구현할 관리자 API 영역입니다.
 ## 예정 구성
 
 - Java 21
-- Spring Boot 3.x
+- Spring Boot 4.1.1
 - Maven
 - Spring Web
 - Spring Data JPA

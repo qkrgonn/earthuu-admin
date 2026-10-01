@@ -60,6 +60,7 @@ WebMCP: 지원 브라우저에서 `view_admin_section` 탐색 도구를 제공�
 ## 백엔드 및 검수 문서
 
 - 백엔드 구성 안내: [`backend/README.md`](backend/README.md)
+- 현재 작업 현황 및 다음 작업: [`docs/project-progress.md`](docs/project-progress.md)
 - 화면–API–ERD 연결 초안: [`docs/api-mapping.md`](docs/api-mapping.md)
 - ERD: 
 - 관리자 IA:
