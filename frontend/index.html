@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Earthuu · 관리자 대시보드</title>
+    <meta
+      name="description"
+      content="Earthuu 이벤트 심사, 신고 대응 및 이용 현황 관리자 시제품"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%232855df'/%3E%3Ctext x='10' y='29' font-size='30' fill='white'%3Ee%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <aside id="sidebar">
+      <a class="brand" href="#dashboard"
+        ><span class="logo">e</span>earthuu<span class="admin">ADMIN</span></a
+      >
+      <div class="workspace">WORKSPACE</div>
+      <nav id="nav"></nav>
+      <div class="sidebar-bottom">
+        <div class="demo-label">프로토타입</div>
+        <p>예시 데이터로 운영 흐름을<br />확인하는 공간입니다.</p>
+        <button class="profile" id="account">
+          <span class="avatar">김</span
+          ><span><b>김관리</b><small>최고관리자 · 데모</small></span
+          ><span>⋯</span>
+        </button>
+      </div>
+    </aside>
+    <div class="shell">
+      <header>
+        <div class="crumb">
+          워크스페이스 <span>/</span> <b id="crumb">대시보드</b>
+        </div>
+        <div class="header-right">
+          <span class="demo-label">예시 데이터</span
+          ><span id="current-date"></span
+          ><button id="logout" class="quiet">로그아웃</button>
+        </div>
+      </header>
+      <main id="main"></main>
+      <footer>
+        earthuu admin <span>대학생들의 새로운 연결을 위한 운영 공간</span>
+      </footer>
+    </div>
+    <dialog id="detail"><div id="detail-content"></div></dialog>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+.DS_Store
+.idea/
+*.iml
+
+docs/*.png
+
+backend/target/
+backend/src/main/resources/application-local.yml
+.env
