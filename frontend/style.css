@@ -899,6 +899,11 @@ dialog::backdrop {
   .filters {
     width: 100%;
   }
+  .section-with-filters {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
   .filters input {
     max-width: 135px;
   }
@@ -1066,4 +1071,12 @@ button:disabled {
 }
 .signed-out .crumb {
   visibility: hidden;
+}
+.activity-cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 700px) {
+  .activity-cards {
+    grid-template-columns: 1fr;
+  }
 }

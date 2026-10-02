@@ -14,3 +14,10 @@ backend/src/main/resources/application-local.properties
 # 환경변수
 .env
 .env.*
+
+# React / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts

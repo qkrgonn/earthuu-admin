@@ -1,0 +1,27 @@
+export const STATUS_LABELS: Record<string, string> = {
+  unresolved: "미처리 전체",
+  pending: "심사신청",
+  reviewing: "심사 중",
+  approved: "승인완료",
+  rejected: "불가 판정",
+  open: "모집 중",
+  ended: "종료",
+  cancelled: "폐기",
+  received: "접수",
+  investigating: "검토 중",
+  resolved: "처리 완료",
+  confirmed: "참여 확정",
+  declined: "반려",
+  applied: "승인 대기",
+  suspended: "운영 중단",
+  not_open: "모집 전",
+};
+
+export const PAGE_LABELS: Record<string, string> = {
+  dashboard: "대시보드",
+  review: "이벤트 심사",
+  events: "이벤트 관리",
+  reports: "신고 관리",
+  stats: "통계",
+  login: "관리자 로그인",
+};
