@@ -7,7 +7,7 @@ import { EventTable } from "../components/events/EventTable";
 import { useAdmin } from "../store/AdminContext";
 
 export function EventsPage({ mode }: { mode: "review" | "management" }) {
-  const { events } = useAdmin();
+  const { events, eventsLoading, eventError, refreshEvents } = useAdmin();
   const [params] = useSearchParams();
   const [tab, setTab] = useState(params.get("tab") ?? "all");
   const [filters, setFilters] = useState<FilterState>(initialFilters);
@@ -43,12 +43,14 @@ export function EventsPage({ mode }: { mode: "review" | "management" }) {
     <PageHead
       title={reviewing ? "이벤트 심사" : "이벤트 관리"}
       description={reviewing ? "등록된 이벤트를 확인하고 심사 결과를 결정하세요." : "판정 결과와 운영 현황을 함께 확인하세요."}
+      extra={<button className="button" disabled={eventsLoading} onClick={() => void refreshEvents()}>{eventsLoading ? "불러오는 중…" : "새로고침"}</button>}
     />
     <section className="panel">
       <Tabs items={tabs} value={tab} onChange={setTab} />
       <FilterToolbar value={filters} onChange={setFilters} onReset={() => setFilters(initialFilters)} />
+      {eventError && <p className="api-error" role="alert">{eventError}</p>}
       <div className="count">총 <b>{list.length}</b>개 이벤트 · 날짜 필터는 신청일 기준</div>
-      <EventTable events={list} />
+      {eventsLoading && !events.length ? <div className="empty">이벤트를 불러오고 있습니다.</div> : <EventTable events={list} />}
     </section>
   </>;
 }

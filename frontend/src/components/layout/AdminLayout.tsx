@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { PAGE_LABELS } from "../../constants/status";
 import { useAdmin } from "../../store/AdminContext";
@@ -13,12 +14,13 @@ const menu = [
 ] as const;
 
 export function AdminLayout() {
-  const { events, dark, setDark, logout, notify } = useAdmin();
+  const { events, session, dark, setDark, logout } = useAdmin();
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const page = location.pathname.split("/")[1] || "dashboard";
   const reviewCount = events.filter((event) => ["pending", "reviewing"].includes(event.status)).length;
-  const handleLogout = () => { logout(); navigate("/login", { replace: true }); };
+  const handleLogout = async () => { await logout(); navigate("/login", { replace: true }); };
 
   return <>
     <aside id="sidebar">
@@ -28,11 +30,29 @@ export function AdminLayout() {
         <NavIcon name={key} />{label}{key === "review" && <span className="nav-count">{reviewCount}</span>}
       </NavLink>)}</nav>
       <div className="sidebar-bottom">
-        <div className="demo-label">프로토타입</div>
-        <p>예시 데이터로 운영 흐름을<br />확인하는 공간입니다.</p>
-        <button className="profile" onClick={() => notify("김관리 · 최고관리자 데모 계정")}>
-          <span className="avatar">김</span><span><b>김관리</b><small>최고관리자 · 데모</small></span><span>⋯</span>
-        </button>
+        <div className="demo-label">API 연결됨</div>
+        <p>이벤트 심사 기능은 Spring API와<br />PostgreSQL 데이터를 사용합니다.</p>
+        <div className="profile">
+          <span className="avatar">A</span>
+          <span className="profile-copy"><b>관리자</b><small>{session?.email ?? "ADMIN"}</small></span>
+          <button
+            type="button"
+            className="profile-menu-trigger"
+            aria-label="관리자 계정 메뉴 열기"
+            aria-expanded={accountMenuOpen}
+            aria-controls="account-menu"
+            onClick={() => setAccountMenuOpen((open) => !open)}
+          >⋯</button>
+          {accountMenuOpen && <div id="account-menu" className="profile-menu" role="menu">
+            <strong>현재 관리자 계정</strong>
+            <span>{session?.email ?? "계정 정보 없음"}</span>
+            <div className="profile-permission"><small>권한</small><b>{session?.role === "ADMIN" ? "관리자 (ADMIN)" : "확인 불가"}</b></div>
+            <button type="button" role="menuitem" onClick={() => {
+              setAccountMenuOpen(false);
+              navigate("/my-reviews");
+            }}>내가 심사한 이벤트 보기 <span aria-hidden="true">→</span></button>
+          </div>}
+        </div>
       </div>
     </aside>
     <div className="shell">
@@ -42,8 +62,8 @@ export function AdminLayout() {
           <button className="button" aria-pressed={dark} aria-label={dark ? "라이트모드 전환" : "다크모드 전환"} onClick={() => setDark(!dark)}>
             {dark ? "☀ 라이트" : "☾ 다크"}
           </button>
-          <span className="demo-label">예시 데이터</span><span>{todayISO.replaceAll("-", ".")}</span>
-          <button id="logout" className="quiet" onClick={handleLogout}>로그아웃</button>
+          <span className="demo-label">이벤트 API</span><span>{todayISO.replaceAll("-", ".")}</span>
+          <button id="logout" className="quiet" onClick={() => void handleLogout()}>로그아웃</button>
         </div>
       </header>
       <main id="main"><Outlet /></main>

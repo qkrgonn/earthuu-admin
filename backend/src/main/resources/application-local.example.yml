@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/earthuu
+    username: earthuu
+    password: change-me
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+
+app:
+  bootstrap-admin:
+    enabled: true
+    email: admin@earthuu.local
+    password: change-me-now
