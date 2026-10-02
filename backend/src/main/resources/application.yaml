@@ -1,3 +1,45 @@
 spring:
   application:
-    name: admin
+    name: earthuu-admin
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/earthuu}
+    username: ${DB_USERNAME:earthuu}
+    password: ${DB_PASSWORD:earthuu}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+
+server:
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: ${SESSION_COOKIE_SECURE:false}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  security:
+    allowed-origins:
+      - ${ADMIN_FRONTEND_ORIGIN:http://localhost:5173}
+  bootstrap-admin:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
