@@ -26,6 +26,11 @@ export interface EventItem {
   history: HistoryItem[];
   reason?: string;
   cancelReason?: string;
+  endsAt?: string;
+  timezone?: string;
+  address?: string;
+  description?: string;
+  detailLoaded?: boolean;
 }
 
 export interface ReportItem {
@@ -44,6 +49,7 @@ export interface ReportItem {
 }
 
 export interface Participant {
+  id?: string;
   name: string;
   group: string;
   status: ParticipantStatus;

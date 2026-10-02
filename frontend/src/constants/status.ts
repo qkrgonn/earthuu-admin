@@ -21,6 +21,7 @@ export const PAGE_LABELS: Record<string, string> = {
   dashboard: "대시보드",
   review: "이벤트 심사",
   events: "이벤트 관리",
+  "my-reviews": "내 관리자 활동",
   reports: "신고 관리",
   stats: "통계",
   login: "관리자 로그인",
