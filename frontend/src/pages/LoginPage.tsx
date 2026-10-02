@@ -3,17 +3,26 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAdmin } from "../store/AdminContext";
 
 export function LoginPage() {
-  const { loggedIn, login, openForgot } = useAdmin();
+  const { authReady, loggedIn, login, openForgot } = useAdmin();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("admin@earthuu.demo");
-  const [password, setPassword] = useState("earthuu-demo");
+  const [email, setEmail] = useState("admin@earthuu.local");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  if (!authReady) return <div className="app-loading">관리자 세션을 확인하고 있습니다.</div>;
   if (loggedIn) return <Navigate to="/dashboard" replace />;
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (login(email, password)) navigate("/dashboard", { replace: true });
-    else setError("표시된 데모 계정으로 로그인해 주세요.");
+    setSubmitting(true);
+    setError("");
+    const form = new FormData(event.currentTarget as HTMLFormElement);
+    const submittedEmail = String(form.get("email") ?? email).trim();
+    const submittedPassword = String(form.get("password") ?? password);
+    const loginError = await login(submittedEmail, submittedPassword);
+    if (loginError === null) navigate("/dashboard", { replace: true });
+    else setError(loginError);
+    setSubmitting(false);
   };
 
   return <div className="login">
@@ -21,13 +30,13 @@ export function LoginPage() {
     <h1>관리자 로그인</h1><p className="sub">운영 워크스페이스에 접속하세요.</p>
     <form onSubmit={submit}>
       <label htmlFor="email">이메일</label>
-      <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="username" />
+      <input id="email" name="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="username" />
       <label htmlFor="password">비밀번호</label>
-      <input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" />
+      <input id="password" name="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" />
       <div className="error" role="alert">{error}</div>
-      <button className="primary">데모 계정으로 로그인</button>
+      <button className="primary" disabled={submitting}>{submitting ? "로그인 중…" : "관리자 로그인"}</button>
     </form>
     <button className="quiet" style={{ marginTop: 12 }} onClick={openForgot}>비밀번호 재설정</button>
-    <div className="login-note">시제품 전용 계정입니다.<br />admin@earthuu.demo / earthuu-demo<br />실제 계정 정보는 입력하지 마세요.</div>
+    <div className="login-note">Spring 서버에 등록된 관리자 계정으로 로그인합니다.<br />로컬 계정은 백엔드 환경 변수로 생성할 수 있습니다.</div>
   </div>;
 }

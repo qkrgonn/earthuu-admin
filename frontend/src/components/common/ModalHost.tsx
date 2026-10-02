@@ -10,6 +10,6 @@ export function ModalHost() {
   if (modal.type === "report") return <ReportDetailModal id={modal.id} />;
   return <Modal onClose={closeModal}>
     <div className="detail-head"><h2>비밀번호 재설정</h2><button className="quiet" onClick={closeModal}>닫기</button></div>
-    <div className="detail-body"><p>실제 이메일 발송은 연결되지 않았습니다. 데모 비밀번호는 <b>earthuu-demo</b>입니다.</p></div>
+    <div className="detail-body"><p>비밀번호 재설정 이메일 발송은 아직 구현되지 않았습니다. 로컬 개발 계정은 백엔드 환경 변수에서 다시 설정해 주세요.</p></div>
   </Modal>;
 }
