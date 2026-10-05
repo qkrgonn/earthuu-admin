@@ -7,6 +7,7 @@ import com.earthuu.admin.auth.repository.PasswordCredentialRepository;
 import com.earthuu.admin.event.entity.Event;
 import com.earthuu.admin.event.entity.EventVersion;
 import com.earthuu.admin.event.entity.LifecycleStatus;
+import com.earthuu.admin.event.entity.EventVisibility;
 import com.earthuu.admin.event.repository.EventRepository;
 import com.earthuu.admin.event.repository.EventVersionRepository;
 import com.earthuu.admin.global.audit.AuditLogRepository;
@@ -15,6 +16,7 @@ import com.earthuu.admin.report.entity.ReportStatus;
 import com.earthuu.admin.report.entity.ReportTargetType;
 import com.earthuu.admin.report.repository.EventDispositionRepository;
 import com.earthuu.admin.report.repository.ReportRepository;
+import com.earthuu.admin.report.repository.UserRestrictionRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +55,7 @@ class AdminReportIntegrationTests {
     @Autowired EventRepository eventRepository;
     @Autowired EventVersionRepository versionRepository;
     @Autowired AuditLogRepository auditLogRepository;
+    @Autowired UserRestrictionRepository restrictionRepository;
     @Autowired PasswordEncoder passwordEncoder;
     @Autowired JdbcTemplate jdbcTemplate;
     @Autowired EntityManager entityManager;
@@ -165,6 +168,31 @@ class AdminReportIntegrationTests {
     }
 
     @Test
+    void contentHiddenActuallyChangesEventVisibility() throws Exception {
+        startReview(eventReportId);
+
+        mockMvc.perform(post("/api/admin/v1/reports/{id}/resolve", eventReportId)
+                        .with(user(ADMIN_EMAIL).roles("ADMIN")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"resolution\":\"CONTENT_HIDDEN\",\"reason\":\"정책 위반 콘텐츠\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.resolution").value("CONTENT_HIDDEN"));
+
+        entityManager.flush();
+        entityManager.clear();
+        var hiddenEvent = eventRepository.findById(eventId).orElseThrow();
+        assertThat(hiddenEvent.getVisibilityStatus()).isEqualTo(EventVisibility.HIDDEN);
+        assertThat(hiddenEvent.getHiddenAt()).isNotNull();
+        assertThat(hiddenEvent.getHiddenBy()).isEqualTo(adminId);
+
+        mockMvc.perform(get("/api/admin/v1/events/{id}", eventId)
+                        .with(user(ADMIN_EMAIL).roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.visibilityStatus").value("HIDDEN"))
+                .andExpect(jsonPath("$.data.hiddenBy").value(adminId.toString()));
+    }
+
+    @Test
     void eventReportRejectsHostOnlyResolution() throws Exception {
         startReview(eventReportId);
 
@@ -193,6 +221,63 @@ class AdminReportIntegrationTests {
         entityManager.clear();
         assertThat(jdbcTemplate.queryForObject("select status from users where id = ?", String.class, hostId))
                 .isEqualTo("SUSPENDED");
+    }
+
+    @Test
+    void hostRestrictionCreatesActiveRestrictionWithOptionalEndTime() throws Exception {
+        var hostReportId = reportRepository.saveAndFlush(Report.create(reporterId, ReportTargetType.HOST, hostId,
+                "ABUSE", "활동 제한이 필요한 반복 위반", null)).getId();
+        startReview(hostReportId);
+
+        mockMvc.perform(post("/api/admin/v1/reports/{id}/resolve", hostReportId)
+                        .with(user(ADMIN_EMAIL).roles("ADMIN")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"resolution\":\"HOST_RESTRICTED\",\"reason\":\"30일 활동 제한\"," +
+                                "\"restrictionEndsAt\":\"2099-12-31T00:00:00Z\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.resolution").value("HOST_RESTRICTED"));
+
+        entityManager.flush();
+        entityManager.clear();
+        var restrictions = restrictionRepository.findByUserIdAndStatusOrderByStartsAtDesc(
+                hostId, com.earthuu.admin.report.entity.UserRestrictionStatus.ACTIVE);
+        assertThat(restrictions).singleElement().satisfies(restriction -> {
+            assertThat(restriction.getSourceReportId()).isEqualTo(hostReportId);
+            assertThat(restriction.getImposedBy()).isEqualTo(adminId);
+            assertThat(restriction.getReason()).isEqualTo("30일 활동 제한");
+            assertThat(restriction.getEndsAt()).isNotNull();
+        });
+    }
+
+    @Test
+    void hostRestrictionRejectsPastEndTimeAndDuplicateActiveRestriction() throws Exception {
+        var firstReportId = reportRepository.saveAndFlush(Report.create(reporterId, ReportTargetType.HOST, hostId,
+                "ABUSE", "첫 번째 제한", null)).getId();
+        startReview(firstReportId);
+
+        mockMvc.perform(post("/api/admin/v1/reports/{id}/resolve", firstReportId)
+                        .with(user(ADMIN_EMAIL).roles("ADMIN")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"resolution\":\"HOST_RESTRICTED\",\"reason\":\"잘못된 기간\"," +
+                                "\"restrictionEndsAt\":\"2000-01-01T00:00:00Z\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_RESTRICTION_PERIOD"));
+
+        mockMvc.perform(post("/api/admin/v1/reports/{id}/resolve", firstReportId)
+                        .with(user(ADMIN_EMAIL).roles("ADMIN")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"resolution\":\"HOST_RESTRICTED\",\"reason\":\"무기한 제한\"}"))
+                .andExpect(status().isOk());
+
+        var secondReportId = reportRepository.saveAndFlush(Report.create(reporterId, ReportTargetType.HOST, hostId,
+                "ABUSE", "두 번째 제한", null)).getId();
+        startReview(secondReportId);
+        mockMvc.perform(post("/api/admin/v1/reports/{id}/resolve", secondReportId)
+                        .with(user(ADMIN_EMAIL).roles("ADMIN")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"resolution\":\"HOST_RESTRICTED\",\"reason\":\"중복 제한\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("HOST_ALREADY_RESTRICTED"));
     }
 
     @Test

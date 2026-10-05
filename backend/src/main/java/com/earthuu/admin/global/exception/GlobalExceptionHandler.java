@@ -37,8 +37,11 @@ public class GlobalExceptionHandler {
                 .anyMatch(error -> error.getField().equals("reason")
                         && (error.getRejectedValue() == null || error.getRejectedValue().toString().isBlank()));
         if (reasonMissing) {
-            var code = exception.getBindingResult().getObjectName().equals("reportResolveRequest")
+            var objectName = exception.getBindingResult().getObjectName();
+            var code = objectName.equals("reportResolveRequest")
                     ? ErrorCode.REPORT_REASON_REQUIRED
+                    : objectName.equals("userActionRequest")
+                    ? ErrorCode.USER_ACTION_REASON_REQUIRED
                     : ErrorCode.REJECT_REASON_REQUIRED;
             return ResponseEntity.status(code.status()).body(ErrorResponse.of(code.name(), code.message(), errors));
         }
@@ -61,9 +64,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ErrorResponse> handleObjectOptimisticLocking(ObjectOptimisticLockingFailureException exception) {
-        var code = exception.getPersistentClass() != null
-                && exception.getPersistentClass().getName().equals("com.earthuu.admin.report.entity.Report")
+        var className = exception.getPersistentClass() == null ? "" : exception.getPersistentClass().getName();
+        var code = className.equals("com.earthuu.admin.report.entity.Report")
                 ? ErrorCode.CONCURRENT_REPORT_UPDATE
+                : className.equals("com.earthuu.admin.auth.entity.AdminUser")
+                    || className.equals("com.earthuu.admin.report.entity.UserRestriction")
+                ? ErrorCode.CONCURRENT_USER_UPDATE
                 : ErrorCode.CONCURRENT_EVENT_UPDATE;
         return ResponseEntity.status(code.status()).body(ErrorResponse.of(code.name(), code.message()));
     }

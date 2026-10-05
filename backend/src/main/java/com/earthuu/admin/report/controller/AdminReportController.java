@@ -68,6 +68,7 @@ public class AdminReportController {
     public ApiResponse<ReportActionResponse> resolve(@PathVariable UUID reportId,
                                                      @Valid @RequestBody ReportResolveRequest request,
                                                      Authentication authentication) {
-        return ApiResponse.of(service.resolve(reportId, request.resolution(), request.reason(), authentication));
+        return ApiResponse.of(service.resolve(reportId, request.resolution(), request.reason(),
+                request.restrictionEndsAt(), authentication));
     }
 }

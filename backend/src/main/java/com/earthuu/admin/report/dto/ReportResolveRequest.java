@@ -5,8 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.time.Instant;
+
 public record ReportResolveRequest(
         @NotNull ReportResolution resolution,
-        @NotBlank @Size(max = 2000) String reason
+        @NotBlank @Size(max = 2000) String reason,
+        Instant restrictionEndsAt
 ) {
 }

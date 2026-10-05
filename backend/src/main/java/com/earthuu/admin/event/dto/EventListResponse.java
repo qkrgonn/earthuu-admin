@@ -3,6 +3,7 @@ package com.earthuu.admin.event.dto;
 import com.earthuu.admin.event.entity.Event;
 import com.earthuu.admin.event.entity.LifecycleStatus;
 import com.earthuu.admin.event.entity.ModerationStatus;
+import com.earthuu.admin.event.entity.EventVisibility;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -19,6 +20,7 @@ public record EventListResponse(
         Instant submittedAt,
         ModerationStatus moderationStatus,
         LifecycleStatus lifecycleStatus,
+        EventVisibility visibilityStatus,
         int revision
 ) {
     public static EventListResponse from(Event event) {
@@ -29,6 +31,6 @@ public record EventListResponse(
                 profile == null ? null : profile.getName(),
                 profile == null ? null : profile.getUniversityName(),
                 version.getCategoryId(), version.getVenueName(), version.getStartsAt(), version.getSubmittedAt(),
-                event.getModerationStatus(), event.getLifecycleStatus(), event.getRevision());
+                event.getModerationStatus(), event.getLifecycleStatus(), event.getVisibilityStatus(), event.getRevision());
     }
 }

@@ -10,6 +10,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+
+import com.earthuu.admin.global.exception.BusinessException;
+import com.earthuu.admin.global.exception.ErrorCode;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -36,6 +40,10 @@ public class AdminUser {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Version
+    @Column(nullable = false)
+    private int revision;
+
     protected AdminUser() {
     }
 
@@ -48,8 +56,20 @@ public class AdminUser {
         return new AdminUser(UserStatus.ACTIVE, UserRole.ADMIN);
     }
 
+    public static AdminUser createUser() {
+        return new AdminUser(UserStatus.ACTIVE, UserRole.USER);
+    }
+
     public void suspend() {
+        if (role == UserRole.ADMIN) throw new BusinessException(ErrorCode.CANNOT_SANCTION_ADMIN);
+        if (status != UserStatus.ACTIVE) throw new BusinessException(ErrorCode.INVALID_USER_STATUS);
         status = UserStatus.SUSPENDED;
+    }
+
+    public void restore() {
+        if (role == UserRole.ADMIN) throw new BusinessException(ErrorCode.CANNOT_SANCTION_ADMIN);
+        if (status != UserStatus.SUSPENDED) throw new BusinessException(ErrorCode.INVALID_USER_STATUS);
+        status = UserStatus.ACTIVE;
     }
 
     @PrePersist
@@ -75,4 +95,8 @@ public class AdminUser {
     public UserRole getRole() {
         return role;
     }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
+    public int getRevision() { return revision; }
 }

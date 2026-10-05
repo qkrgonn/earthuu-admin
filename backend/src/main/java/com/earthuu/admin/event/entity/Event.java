@@ -53,12 +53,22 @@ public class Event {
     @Column(name = "lifecycle_status", nullable = false, length = 30)
     private LifecycleStatus lifecycleStatus;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility_status", nullable = false, length = 20)
+    private EventVisibility visibilityStatus;
+
     @Version
     @Column(nullable = false)
     private int revision;
 
     @Column(name = "published_at")
     private Instant publishedAt;
+
+    @Column(name = "hidden_at")
+    private Instant hiddenAt;
+
+    @Column(name = "hidden_by")
+    private UUID hiddenBy;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -73,6 +83,7 @@ public class Event {
         this.hostId = hostId;
         this.moderationStatus = ModerationStatus.PENDING;
         this.lifecycleStatus = LifecycleStatus.NOT_OPEN;
+        this.visibilityStatus = EventVisibility.VISIBLE;
     }
 
     public static Event createPending(UUID hostId) {
@@ -117,6 +128,15 @@ public class Event {
         lifecycleStatus = LifecycleStatus.CANCELLED;
     }
 
+    public void hideContent(UUID actorId) {
+        if (visibilityStatus == EventVisibility.HIDDEN) {
+            throw new BusinessException(ErrorCode.EVENT_CONTENT_ALREADY_HIDDEN);
+        }
+        visibilityStatus = EventVisibility.HIDDEN;
+        hiddenAt = Instant.now();
+        hiddenBy = actorId;
+    }
+
     private void requireStatus(ModerationStatus expected) {
         if (moderationStatus != expected) {
             throw new BusinessException(ErrorCode.INVALID_REVIEW_STATUS);
@@ -143,8 +163,11 @@ public class Event {
     public EventVersion getCurrentVersion() { return currentVersion; }
     public ModerationStatus getModerationStatus() { return moderationStatus; }
     public LifecycleStatus getLifecycleStatus() { return lifecycleStatus; }
+    public EventVisibility getVisibilityStatus() { return visibilityStatus; }
     public int getRevision() { return revision; }
     public Instant getPublishedAt() { return publishedAt; }
+    public Instant getHiddenAt() { return hiddenAt; }
+    public UUID getHiddenBy() { return hiddenBy; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

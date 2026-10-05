@@ -19,9 +19,12 @@ import com.earthuu.admin.report.entity.Report;
 import com.earthuu.admin.report.entity.ReportResolution;
 import com.earthuu.admin.report.entity.ReportStatus;
 import com.earthuu.admin.report.entity.ReportTargetType;
+import com.earthuu.admin.report.entity.UserRestriction;
+import com.earthuu.admin.report.entity.UserRestrictionStatus;
 import com.earthuu.admin.report.repository.EventDispositionRepository;
 import com.earthuu.admin.report.repository.ReportRepository;
 import com.earthuu.admin.report.repository.UserProfileRepository;
+import com.earthuu.admin.report.repository.UserRestrictionRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,6 +44,7 @@ public class AdminReportService {
     private final EventRepository eventRepository;
     private final AdminUserRepository userRepository;
     private final UserProfileRepository profileRepository;
+    private final UserRestrictionRepository restrictionRepository;
     private final AdminAuthService adminAuthService;
     private final AuditLogService auditLogService;
 
@@ -48,6 +53,7 @@ public class AdminReportService {
                               EventRepository eventRepository,
                               AdminUserRepository userRepository,
                               UserProfileRepository profileRepository,
+                              UserRestrictionRepository restrictionRepository,
                               AdminAuthService adminAuthService,
                               AuditLogService auditLogService) {
         this.reportRepository = reportRepository;
@@ -55,6 +61,7 @@ public class AdminReportService {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
+        this.restrictionRepository = restrictionRepository;
         this.adminAuthService = adminAuthService;
         this.auditLogService = auditLogService;
     }
@@ -99,11 +106,12 @@ public class AdminReportService {
 
     @Transactional
     public ReportActionResponse resolve(UUID reportId, ReportResolution resolution, String reason,
-                                        Authentication authentication) {
+                                        Instant restrictionEndsAt, Authentication authentication) {
         if (reason == null || reason.isBlank()) throw new BusinessException(ErrorCode.REPORT_REASON_REQUIRED);
+        validateRestrictionPeriod(resolution, restrictionEndsAt);
         var report = getReport(reportId);
         var actorId = currentAdminId(authentication);
-        UUID eventId = applyTargetAction(report, resolution);
+        UUID eventId = applyTargetAction(report, resolution, actorId, reason.trim(), restrictionEndsAt);
         report.resolve(resolution, reason.trim(), actorId);
         dispositionRepository.save(EventDisposition.record(report, eventId, actorId, resolution, reason.trim()));
         Map<String, Object> metadata = new LinkedHashMap<>();
@@ -111,12 +119,14 @@ public class AdminReportService {
         metadata.put("targetId", report.getTargetId());
         metadata.put("resolution", resolution.name());
         metadata.put("reason", reason.trim());
+        if (restrictionEndsAt != null) metadata.put("restrictionEndsAt", restrictionEndsAt);
         auditLogService.recordReportAction(actorId, "REPORT_RESOLVED", reportId, metadata);
         reportRepository.flush();
         return ReportActionResponse.from(report);
     }
 
-    private UUID applyTargetAction(Report report, ReportResolution resolution) {
+    private UUID applyTargetAction(Report report, ReportResolution resolution, UUID actorId,
+                                   String reason, Instant restrictionEndsAt) {
         if (!resolution.supports(report.getTargetType())) {
             throw new BusinessException(ErrorCode.INVALID_REPORT_RESOLUTION);
         }
@@ -124,6 +134,7 @@ public class AdminReportService {
             var event = eventRepository.findById(report.getTargetId()).orElse(null);
             if (requiresTarget(resolution) && event == null) throw new BusinessException(ErrorCode.REPORT_TARGET_NOT_FOUND);
             if (event == null) return null;
+            if (resolution == ReportResolution.CONTENT_HIDDEN) event.hideContent(actorId);
             if (resolution == ReportResolution.EVENT_SUSPENDED) event.suspend();
             if (resolution == ReportResolution.EVENT_DISCARDED) event.discard();
             return event.getId();
@@ -133,9 +144,31 @@ public class AdminReportService {
             var user = userRepository.findById(report.getTargetId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.REPORT_TARGET_NOT_FOUND));
             if (user.getRole() == UserRole.ADMIN) throw new BusinessException(ErrorCode.CANNOT_SANCTION_ADMIN);
+            if (resolution == ReportResolution.HOST_RESTRICTED) {
+                if (hasActiveRestriction(user.getId())) {
+                    throw new BusinessException(ErrorCode.HOST_ALREADY_RESTRICTED);
+                }
+                restrictionRepository.save(UserRestriction.impose(
+                        user.getId(), report.getId(), actorId, reason, restrictionEndsAt));
+            }
             if (resolution == ReportResolution.HOST_SUSPENDED) user.suspend();
         }
         return null;
+    }
+
+    private boolean hasActiveRestriction(UUID userId) {
+        return restrictionRepository.existsByUserIdAndStatusAndEndsAtIsNull(userId, UserRestrictionStatus.ACTIVE)
+                || restrictionRepository.existsByUserIdAndStatusAndEndsAtAfter(
+                        userId, UserRestrictionStatus.ACTIVE, Instant.now());
+    }
+
+    private void validateRestrictionPeriod(ReportResolution resolution, Instant restrictionEndsAt) {
+        if (restrictionEndsAt != null && resolution != ReportResolution.HOST_RESTRICTED) {
+            throw new BusinessException(ErrorCode.INVALID_RESTRICTION_PERIOD);
+        }
+        if (restrictionEndsAt != null && !restrictionEndsAt.isAfter(Instant.now())) {
+            throw new BusinessException(ErrorCode.INVALID_RESTRICTION_PERIOD);
+        }
     }
 
     private boolean requiresTarget(ReportResolution resolution) {

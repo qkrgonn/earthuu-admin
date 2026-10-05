@@ -83,6 +83,28 @@ class AdminAuthIntegrationTests {
     }
 
     @Test
+    void swaggerCanLoginUsingRawXsrfCookieValueAsHeader() throws Exception {
+        var csrfResult = mockMvc.perform(get("/api/admin/v1/auth/csrf"))
+                .andExpect(status().isOk())
+                .andReturn();
+        var csrfCookie = csrfResult.getResponse().getCookie("XSRF-TOKEN");
+        assertNotNull(csrfCookie);
+
+        mockMvc.perform(post("/api/admin/v1/auth/login")
+                        .cookie(csrfCookie)
+                        .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "admin@earthuu.test",
+                                  "password": "test-password"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("admin@earthuu.test"));
+    }
+
+    @Test
     void invalidPasswordReturnsUnauthorized() throws Exception {
         mockMvc.perform(post("/api/admin/v1/auth/login")
                         .with(csrf())

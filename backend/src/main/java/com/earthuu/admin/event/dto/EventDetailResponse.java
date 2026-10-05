@@ -4,6 +4,7 @@ import com.earthuu.admin.event.entity.Event;
 import com.earthuu.admin.event.entity.LifecycleStatus;
 import com.earthuu.admin.event.entity.ModerationStatus;
 import com.earthuu.admin.event.entity.SubmissionState;
+import com.earthuu.admin.event.entity.EventVisibility;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -17,6 +18,9 @@ public record EventDetailResponse(
         String universityName,
         ModerationStatus moderationStatus,
         LifecycleStatus lifecycleStatus,
+        EventVisibility visibilityStatus,
+        Instant hiddenAt,
+        UUID hiddenBy,
         int revision,
         UUID currentVersionId,
         int versionNumber,
@@ -45,7 +49,8 @@ public record EventDetailResponse(
         return new EventDetailResponse(
                 event.getId(), event.getHostId(), profile == null ? null : profile.getName(),
                 profile == null ? null : profile.getUniversityName(), event.getModerationStatus(),
-                event.getLifecycleStatus(), event.getRevision(), version.getId(), version.getVersionNumber(),
+                event.getLifecycleStatus(), event.getVisibilityStatus(), event.getHiddenAt(), event.getHiddenBy(),
+                event.getRevision(), version.getId(), version.getVersionNumber(),
                 version.getSubmissionState(), version.getTitle(), version.getCategoryId(), version.getCityCode(),
                 version.getVenueName(), version.getAddress(), version.getLatitude(), version.getLongitude(),
                 version.getStartsAt(), version.getEndsAt(), version.getTimezone(), version.getRecruitmentStart(),

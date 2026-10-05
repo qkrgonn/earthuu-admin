@@ -27,6 +27,8 @@ public class UserProfile {
     protected UserProfile() {
     }
 
+    public UUID getUserId() { return userId; }
+
     public String getName() {
         return name;
     }
