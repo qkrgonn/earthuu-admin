@@ -65,18 +65,21 @@ public class AdminEventController {
 
     @PostMapping("/{eventId}/review/start")
     @Operation(summary = "이벤트 심사 시작", description = "PENDING 이벤트를 REVIEWING으로 변경합니다. 세션과 X-XSRF-TOKEN 헤더가 필요합니다.")
+    @SecurityRequirement(name = "csrfToken")
     public ApiResponse<EventReviewResponse> startReview(@PathVariable UUID eventId, Authentication authentication) {
         return ApiResponse.of(service.startReview(eventId, authentication));
     }
 
     @PostMapping("/{eventId}/review/approve")
     @Operation(summary = "이벤트 승인", description = "REVIEWING 이벤트를 APPROVED로 변경합니다. 세션과 X-XSRF-TOKEN 헤더가 필요합니다.")
+    @SecurityRequirement(name = "csrfToken")
     public ApiResponse<EventReviewResponse> approve(@PathVariable UUID eventId, Authentication authentication) {
         return ApiResponse.of(service.approve(eventId, authentication));
     }
 
     @PostMapping("/{eventId}/review/reject")
     @Operation(summary = "이벤트 반려", description = "REVIEWING 이벤트를 사유와 함께 REJECTED로 변경합니다. 세션과 X-XSRF-TOKEN 헤더가 필요합니다.")
+    @SecurityRequirement(name = "csrfToken")
     public ApiResponse<EventReviewResponse> reject(
             @PathVariable UUID eventId,
             @Valid @RequestBody EventRejectRequest request,

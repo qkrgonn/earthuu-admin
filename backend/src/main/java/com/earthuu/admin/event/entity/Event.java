@@ -103,6 +103,20 @@ public class Event {
         moderationStatus = ModerationStatus.REJECTED;
     }
 
+    public void suspend() {
+        if (lifecycleStatus == LifecycleStatus.CANCELLED || lifecycleStatus == LifecycleStatus.ENDED) {
+            throw new BusinessException(ErrorCode.INVALID_EVENT_OPERATION);
+        }
+        lifecycleStatus = LifecycleStatus.SUSPENDED;
+    }
+
+    public void discard() {
+        if (lifecycleStatus == LifecycleStatus.CANCELLED || lifecycleStatus == LifecycleStatus.ENDED) {
+            throw new BusinessException(ErrorCode.INVALID_EVENT_OPERATION);
+        }
+        lifecycleStatus = LifecycleStatus.CANCELLED;
+    }
+
     private void requireStatus(ModerationStatus expected) {
         if (moderationStatus != expected) {
             throw new BusinessException(ErrorCode.INVALID_REVIEW_STATUS);

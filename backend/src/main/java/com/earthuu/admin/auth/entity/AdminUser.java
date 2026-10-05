@@ -48,6 +48,10 @@ public class AdminUser {
         return new AdminUser(UserStatus.ACTIVE, UserRole.ADMIN);
     }
 
+    public void suspend() {
+        status = UserStatus.SUSPENDED;
+    }
+
     @PrePersist
     void prePersist() {
         var now = Instant.now();

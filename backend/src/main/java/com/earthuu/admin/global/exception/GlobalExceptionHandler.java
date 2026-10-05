@@ -4,6 +4,7 @@ import com.earthuu.admin.global.response.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -36,7 +37,9 @@ public class GlobalExceptionHandler {
                 .anyMatch(error -> error.getField().equals("reason")
                         && (error.getRejectedValue() == null || error.getRejectedValue().toString().isBlank()));
         if (reasonMissing) {
-            var code = ErrorCode.REJECT_REASON_REQUIRED;
+            var code = exception.getBindingResult().getObjectName().equals("reportResolveRequest")
+                    ? ErrorCode.REPORT_REASON_REQUIRED
+                    : ErrorCode.REJECT_REASON_REQUIRED;
             return ResponseEntity.status(code.status()).body(ErrorResponse.of(code.name(), code.message(), errors));
         }
         var code = ErrorCode.INVALID_REQUEST;
@@ -54,6 +57,15 @@ public class GlobalExceptionHandler {
         var code = ErrorCode.INVALID_REQUEST;
         var errors = List.of(new ErrorResponse.FieldError(exception.getName(), "지원하지 않는 값입니다."));
         return ResponseEntity.status(code.status()).body(ErrorResponse.of(code.name(), code.message(), errors));
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleObjectOptimisticLocking(ObjectOptimisticLockingFailureException exception) {
+        var code = exception.getPersistentClass() != null
+                && exception.getPersistentClass().getName().equals("com.earthuu.admin.report.entity.Report")
+                ? ErrorCode.CONCURRENT_REPORT_UPDATE
+                : ErrorCode.CONCURRENT_EVENT_UPDATE;
+        return ResponseEntity.status(code.status()).body(ErrorResponse.of(code.name(), code.message()));
     }
 
     @ExceptionHandler(OptimisticLockingFailureException.class)

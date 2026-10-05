@@ -6,6 +6,7 @@ import com.earthuu.admin.auth.dto.LoginRequest;
 import com.earthuu.admin.auth.service.AdminAuthService;
 import com.earthuu.admin.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -51,7 +52,8 @@ public class AdminAuthController {
         return ApiResponse.of(new CsrfTokenResponse(token.getHeaderName(), token.getParameterName(), token.getToken()));
     }
 
-    @Operation(summary = "관리자 로그인")
+    @Operation(summary = "관리자 로그인", description = "먼저 CSRF 토큰 발급 API를 호출해야 합니다.")
+    @SecurityRequirement(name = "csrfToken")
     @PostMapping("/login")
     public ApiResponse<AdminSessionResponse> login(
             @Valid @RequestBody LoginRequest requestBody,
@@ -72,12 +74,15 @@ public class AdminAuthController {
     }
 
     @Operation(summary = "현재 관리자 조회")
+    @SecurityRequirement(name = "sessionAuth")
     @GetMapping("/me")
     public ApiResponse<AdminSessionResponse> me(Authentication authentication) {
         return ApiResponse.of(adminAuthService.getAdminSession(authentication.getName()));
     }
 
     @Operation(summary = "관리자 로그아웃")
+    @SecurityRequirement(name = "sessionAuth")
+    @SecurityRequirement(name = "csrfToken")
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(

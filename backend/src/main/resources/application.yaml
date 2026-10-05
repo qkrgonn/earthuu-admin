@@ -34,6 +34,10 @@ management:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+    csrf:
+      enabled: true
+      cookie-name: XSRF-TOKEN
+      header-name: X-XSRF-TOKEN
 
 app:
   security:
