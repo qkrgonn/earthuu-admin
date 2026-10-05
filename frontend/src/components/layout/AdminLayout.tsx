@@ -19,6 +19,7 @@ export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const page = location.pathname.split("/")[1] || "dashboard";
+  const adminId = session?.email.split("@")[0] ?? "관리자";
   const reviewCount = events.filter((event) => ["pending", "reviewing"].includes(event.status)).length;
   const handleLogout = async () => { await logout(); navigate("/login", { replace: true }); };
 
@@ -50,7 +51,7 @@ export function AdminLayout() {
             <button type="button" role="menuitem" onClick={() => {
               setAccountMenuOpen(false);
               navigate("/my-reviews");
-            }}>내가 심사한 이벤트 보기 <span aria-hidden="true">→</span></button>
+            }}><span className="profile-menu-link-copy"><b>{adminId} 관리자 활동 내역</b><small>이벤트 심사 · 신고 처리</small></span><span aria-hidden="true">→</span></button>
           </div>}
         </div>
       </div>

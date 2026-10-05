@@ -233,6 +233,26 @@ nav a.active {
   font-size: 13px;
   font-weight: 700;
 }
+.profile-menu-link-copy {
+  min-width: 0;
+  text-align: left;
+}
+.profile-menu-link-copy b,
+.profile-menu-link-copy small {
+  display: block;
+}
+.profile-menu-link-copy b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.profile-menu-link-copy small {
+  margin-top: 2px;
+  color: #6f84bd;
+  font-size: 10px;
+  font-weight: 500;
+}
 .avatar {
   display: inline-grid;
   place-items: center;
@@ -395,6 +415,13 @@ nav a.active {
 .activity-history-actions .rejected-count {
   background: #fff1f2;
   color: #c44d59;
+}
+.activity-history-actions .demo-data-badge {
+  background: #fff7df;
+  color: #967019;
+}
+.report-activity-history {
+  margin-top: 18px;
 }
 .activity-empty {
   display: grid;

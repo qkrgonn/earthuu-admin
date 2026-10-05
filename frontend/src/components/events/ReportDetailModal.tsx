@@ -4,10 +4,14 @@ import { HistoryList } from "../common/HistoryList";
 import { Modal } from "../common/Modal";
 import { StatusBadge } from "../common/StatusBadge";
 
+const commonResolutions = ["조치 불필요", "주의 안내", "공식 경고"];
+const eventResolutions = ["콘텐츠 비공개", "이벤트 운영 중단", "이벤트 폐기"];
+const hostResolutions = ["호스트 활동 제한", "호스트 계정 정지"];
+
 export function ReportDetailModal({ id }: { id: string }) {
   const { reports, events, closeModal, openEvent, startReport, resolveReport } = useAdmin();
   const report = reports.find((item) => item.id === id);
-  const [resolution, setResolution] = useState("조치 불필요");
+  const [resolution, setResolution] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [confirming, setConfirming] = useState(false);
@@ -15,6 +19,7 @@ export function ReportDetailModal({ id }: { id: string }) {
   const event = events.find((item) => item.id === report.target);
 
   const requestResolve = () => {
+    if (!resolution) { setError("조치 결과를 선택해 주세요."); return; }
     if (!note.trim()) { setError("처리 사유를 입력해 주세요."); return; }
     setError(""); setConfirming(true);
   };
@@ -40,10 +45,20 @@ export function ReportDetailModal({ id }: { id: string }) {
       {report.status === "received" && <div className="detail-actions"><button className="primary" onClick={() => startReport(id)}>검토 시작</button></div>}
       {report.status === "investigating" && <div className="detail-section">
         <label htmlFor="resolution">조치 결정</label>
-        <select id="resolution" value={resolution} onChange={(input) => setResolution(input.target.value)}><option>조치 불필요</option>{event && <option>운영 중단</option>}</select>
+        <select id="resolution" value={resolution} onChange={(input) => setResolution(input.target.value)}>
+          <option value="">조치 결과 선택</option>
+          <optgroup label="공통 조치">
+            {commonResolutions.map((option) => <option key={option}>{option}</option>)}
+          </optgroup>
+          <optgroup label={report.type === "event" ? "이벤트 조치" : "호스트 조치"}>
+            {(report.type === "event" ? eventResolutions : hostResolutions).map((option) => <option key={option}>{option}</option>)}
+          </optgroup>
+        </select>
         <label htmlFor="resolution-note">처리 사유 · 필수</label>
         <textarea id="resolution-note" placeholder="확인한 내용과 판단 사유를 입력하세요." value={note} onChange={(input) => setNote(input.target.value)} />
-        <p className="sub">운영 중단은 관련 이벤트가 있을 때만 선택할 수 있습니다.</p><p className="error" role="alert">{error}</p>
+        <p className="sub">{report.type === "event"
+          ? event ? "이벤트 조치는 연결된 이벤트에 적용됩니다." : "연결된 이벤트가 없어 실제 조치 전 대상 확인이 필요합니다."
+          : "호스트 조치는 해당 계정의 활동 권한에 적용됩니다."}</p><p className="error" role="alert">{error}</p>
         <div className="detail-actions"><button className="primary" onClick={requestResolve}>처리 결과 확인</button></div>
       </div>}
       {report.status === "resolved" && <div className="insight">{report.resolution} · {report.note}</div>}

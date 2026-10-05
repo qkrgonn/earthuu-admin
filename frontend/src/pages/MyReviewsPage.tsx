@@ -14,7 +14,7 @@ const reviewedAt = (value: string) => new Date(value).toLocaleString("ko-KR", {
 });
 
 export function MyReviewsPage() {
-  const { openEvent, session } = useAdmin();
+  const { openEvent, openReport, reports, session } = useAdmin();
   const [events, setEvents] = useState<ApiReviewedEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,11 +35,12 @@ export function MyReviewsPage() {
 
   const approvedCount = events.filter((event) => event.decision === "APPROVED").length;
   const rejectedCount = events.filter((event) => event.decision === "REJECTED").length;
+  const handledReports = reports.filter((report) => report.status === "resolved");
 
   return <>
     <PageHead
       title="내 관리자 활동"
-      description="계정 권한과 이벤트 심사 이력을 한곳에서 확인합니다."
+      description="계정 권한, 이벤트 심사와 신고 처리 이력을 한곳에서 확인합니다."
     />
     <div className="activity-overview">
       <section className="panel activity-account" aria-labelledby="account-heading">
@@ -71,7 +72,7 @@ export function MyReviewsPage() {
 
     <section className="panel activity-history">
       <div className="activity-history-head">
-        <div><div className="activity-card-label">REVIEW HISTORY</div><h2>내가 심사한 이벤트</h2></div>
+        <div><div className="activity-card-label">EVENT REVIEW</div><h2>이벤트 심사 내역</h2></div>
         <div className="activity-history-actions">
           <span>전체 <b>{events.length}</b></span><span className="approved-count">승인 {approvedCount}</span><span className="rejected-count">반려 {rejectedCount}</span>
           <button className="button" disabled={loading} onClick={() => void load()}>{loading ? "불러오는 중…" : "새로고침"}</button>
@@ -92,6 +93,29 @@ export function MyReviewsPage() {
         <div className="empty-icon">✓</div>
         <b>아직 완료한 심사가 없습니다.</b>
         <p>이벤트를 승인하거나 반려하면 이곳에 심사 이력이 표시됩니다.</p>
+      </div>}
+    </section>
+
+    <section className="panel activity-history report-activity-history">
+      <div className="activity-history-head">
+        <div><div className="activity-card-label">REPORT ACTION</div><h2>신고 처리 내역</h2></div>
+        <div className="activity-history-actions">
+          <span>처리 완료 <b>{handledReports.length}</b></span>
+          <span className="demo-data-badge">현재 데모 데이터</span>
+        </div>
+      </div>
+      {handledReports.length ? <div className="table-wrap"><table>
+        <thead><tr><th>신고 내용</th><th>신고 대상</th><th>조치 결과</th><th>처리 사유</th></tr></thead>
+        <tbody>{handledReports.map((report) => <tr key={report.id}>
+          <td><button className="event-link" onClick={() => openReport(report.id)}>{report.reason}</button><small>{report.id} · {report.date}</small></td>
+          <td>{report.title}<small>{report.type === "event" ? "이벤트" : "호스트"}</small></td>
+          <td>{report.resolution ?? "처리 완료"}</td>
+          <td>{report.note ?? "—"}</td>
+        </tr>)}</tbody>
+      </table></div> : <div className="activity-empty">
+        <div className="empty-icon">!</div>
+        <b>아직 처리 완료한 신고가 없습니다.</b>
+        <p>신고 관리에서 조치를 완료하면 이곳에 처리 이력이 표시됩니다.</p>
       </div>}
     </section>
   </>;
