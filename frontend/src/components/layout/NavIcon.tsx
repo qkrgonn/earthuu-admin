@@ -5,6 +5,7 @@ const paths: Record<string, ReactNode> = {
   review: <><path d="M9 3h6v4H9zM7 5H5v16h14V5h-2M8 12h8M8 16h5" /></>,
   events: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4m10-4v4M3 11h18" /></>,
   reports: <><path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7zM12 8v5m0 3v1" /></>,
+  users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
   stats: <><path d="M4 3v17h17M8 16v-5m5 5V7m5 9V4" /></>,
 };
 

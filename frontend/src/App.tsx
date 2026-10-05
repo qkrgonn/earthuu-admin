@@ -9,6 +9,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { MyReviewsPage } from "./pages/MyReviewsPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { StatisticsPage } from "./pages/StatisticsPage";
+import { UsersPage } from "./pages/UsersPage";
 import { useAdmin } from "./store/AdminContext";
 
 function Protected({ children }: { children: ReactNode }) {
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/events" element={<EventsPage mode="management" />} />
         <Route path="/my-reviews" element={<MyReviewsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/users" element={<UsersPage />} />
         <Route path="/stats" element={<StatisticsPage />} />
       </Route>
       <Route path="*" element={authReady ? <Navigate to={loggedIn ? "/dashboard" : "/login"} replace /> : <div className="app-loading">관리자 세션을 확인하고 있습니다.</div>} />

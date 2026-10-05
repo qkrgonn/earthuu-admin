@@ -15,6 +15,10 @@ export const STATUS_LABELS: Record<string, string> = {
   applied: "승인 대기",
   suspended: "운영 중단",
   not_open: "모집 전",
+  active: "활성",
+  withdrawn: "탈퇴",
+  revoked: "해제",
+  expired: "만료",
 };
 
 export const PAGE_LABELS: Record<string, string> = {
@@ -23,6 +27,7 @@ export const PAGE_LABELS: Record<string, string> = {
   events: "이벤트 관리",
   "my-reviews": "내 관리자 활동",
   reports: "신고 관리",
+  users: "사용자 관리",
   stats: "통계",
   login: "관리자 로그인",
 };

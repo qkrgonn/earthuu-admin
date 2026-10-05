@@ -10,6 +10,7 @@ const menu = [
   ["review", "이벤트 심사"],
   ["events", "이벤트 관리"],
   ["reports", "신고 관리"],
+  ["users", "사용자 관리"],
   ["stats", "통계"],
 ] as const;
 
@@ -32,7 +33,7 @@ export function AdminLayout() {
       </NavLink>)}</nav>
       <div className="sidebar-bottom">
         <div className="demo-label">API 연결됨</div>
-        <p>이벤트 심사 기능은 Spring API와<br />PostgreSQL 데이터를 사용합니다.</p>
+        <p>이벤트·사용자 관리 기능은 Spring API와<br />PostgreSQL 데이터를 사용합니다.</p>
         <div className="profile">
           <span className="avatar">A</span>
           <span className="profile-copy"><b>관리자</b><small>{session?.email ?? "ADMIN"}</small></span>
@@ -63,7 +64,7 @@ export function AdminLayout() {
           <button className="button" aria-pressed={dark} aria-label={dark ? "라이트모드 전환" : "다크모드 전환"} onClick={() => setDark(!dark)}>
             {dark ? "☀ 라이트" : "☾ 다크"}
           </button>
-          <span className="demo-label">이벤트 API</span><span>{todayISO.replaceAll("-", ".")}</span>
+          <span className="demo-label">Spring API</span><span>{todayISO.replaceAll("-", ".")}</span>
           <button id="logout" className="quiet" onClick={() => void handleLogout()}>로그아웃</button>
         </div>
       </header>

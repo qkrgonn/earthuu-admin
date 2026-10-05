@@ -5,7 +5,7 @@ export function StatusBadge({ status }: { status: string }) {
     ? "wait"
     : ["reviewing", "investigating"].includes(status)
       ? "review"
-      : ["approved", "confirmed", "resolved"].includes(status)
+      : ["approved", "confirmed", "resolved", "active"].includes(status)
         ? "ok"
         : ["rejected", "declined", "suspended"].includes(status)
           ? "no"
