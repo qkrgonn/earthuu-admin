@@ -5,6 +5,7 @@
 # 로컬 문서·이미지
 docs/*.png
 docs/project-progress.md
+downloads/backend-study-guide.md
 
 # Spring Boot / Maven
 backend/target/
@@ -14,6 +15,10 @@ backend/src/main/resources/application-local.properties
 # 환경변수
 .env
 .env.*
+!deploy/.env.production.example
+deploy/letsencrypt/
+deploy/secrets/
+deploy/backups/
 
 # React / Vite
 frontend/node_modules/
@@ -21,3 +26,13 @@ frontend/dist/
 frontend/*.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts
+
+# dockerignore
+node_modules
+dist
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+.git
+.env
+.env.*

@@ -17,6 +17,7 @@ spring:
     enabled: true
 
 server:
+  forward-headers-strategy: framework
   servlet:
     session:
       timeout: 30m
@@ -32,7 +33,10 @@ management:
         include: health,info
 
 springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
   swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
     path: /swagger-ui.html
     csrf:
       enabled: true

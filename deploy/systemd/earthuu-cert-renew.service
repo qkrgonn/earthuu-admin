@@ -1,0 +1,12 @@
+[Unit]
+Description=Renew Earthuu TLS certificate
+Requires=docker.service
+After=docker.service network-online.target earthuu-admin.service
+Wants=network-online.target
+ConditionPathExists=/opt/earthuu-admin/deploy/.env.production
+
+[Service]
+Type=oneshot
+User=earthuu
+WorkingDirectory=/opt/earthuu-admin/deploy
+ExecStart=/opt/earthuu-admin/deploy/scripts/renew-certificates.sh
