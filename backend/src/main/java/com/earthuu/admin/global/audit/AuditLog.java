@@ -47,6 +47,10 @@ public class AuditLog {
     void prePersist() { createdAt = Instant.now(); }
 
     public UUID getId() { return id; }
+    public UUID getActorId() { return actorId; }
     public String getAction() { return action; }
+    public String getTargetType() { return targetType; }
     public UUID getTargetId() { return targetId; }
+    public Map<String, Object> getMetadata() { return metadata; }
+    public Instant getCreatedAt() { return createdAt; }
 }

@@ -40,6 +40,8 @@ public class GlobalExceptionHandler {
             var objectName = exception.getBindingResult().getObjectName();
             var code = objectName.equals("reportResolveRequest")
                     ? ErrorCode.REPORT_REASON_REQUIRED
+                    : objectName.equals("verificationRejectRequest")
+                    ? ErrorCode.VERIFICATION_REJECT_REASON_REQUIRED
                     : objectName.equals("userActionRequest")
                     ? ErrorCode.USER_ACTION_REASON_REQUIRED
                     : ErrorCode.REJECT_REASON_REQUIRED;
@@ -67,6 +69,8 @@ public class GlobalExceptionHandler {
         var className = exception.getPersistentClass() == null ? "" : exception.getPersistentClass().getName();
         var code = className.equals("com.earthuu.admin.report.entity.Report")
                 ? ErrorCode.CONCURRENT_REPORT_UPDATE
+                : className.equals("com.earthuu.admin.verification.entity.StudentVerification")
+                ? ErrorCode.CONCURRENT_VERIFICATION_UPDATE
                 : className.equals("com.earthuu.admin.auth.entity.AdminUser")
                     || className.equals("com.earthuu.admin.report.entity.UserRestriction")
                 ? ErrorCode.CONCURRENT_USER_UPDATE

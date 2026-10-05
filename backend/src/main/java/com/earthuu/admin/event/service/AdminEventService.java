@@ -18,6 +18,7 @@ import com.earthuu.admin.event.repository.ModerationActionRepository;
 import com.earthuu.admin.global.audit.AuditLogService;
 import com.earthuu.admin.global.exception.BusinessException;
 import com.earthuu.admin.global.exception.ErrorCode;
+import com.earthuu.admin.notification.service.OutboxPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -37,19 +38,22 @@ public class AdminEventService {
     private final ModerationActionRepository moderationActionRepository;
     private final AdminAuthService adminAuthService;
     private final AuditLogService auditLogService;
+    private final OutboxPublisher outboxPublisher;
 
     public AdminEventService(
             EventRepository eventRepository,
             EventParticipationRepository participationRepository,
             ModerationActionRepository moderationActionRepository,
             AdminAuthService adminAuthService,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            OutboxPublisher outboxPublisher
     ) {
         this.eventRepository = eventRepository;
         this.participationRepository = participationRepository;
         this.moderationActionRepository = moderationActionRepository;
         this.adminAuthService = adminAuthService;
         this.auditLogService = auditLogService;
+        this.outboxPublisher = outboxPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -116,6 +120,8 @@ public class AdminEventService {
         var previous = event.getModerationStatus().name();
         event.approve();
         record(event, actorId, ModerationActionType.APPROVED, "승인", previous);
+        outboxPublisher.enqueueNotification(event.getHostId(), "EVENT_APPROVED", "EVENT", eventId,
+                "이벤트 심사가 승인되었습니다.", "등록한 이벤트가 승인되었습니다.", "event-approved:" + eventId);
         eventRepository.flush();
         return EventReviewResponse.from(event);
     }
@@ -130,6 +136,9 @@ public class AdminEventService {
         var previous = event.getModerationStatus().name();
         event.reject();
         record(event, actorId, ModerationActionType.REJECTED, reason.trim(), previous);
+        outboxPublisher.enqueueNotification(event.getHostId(), "EVENT_REJECTED", "EVENT", eventId,
+                "이벤트 심사가 반려되었습니다.", "이벤트 심사 결과와 반려 사유를 확인해 주세요.",
+                "event-rejected:" + eventId);
         eventRepository.flush();
         return EventReviewResponse.from(event);
     }

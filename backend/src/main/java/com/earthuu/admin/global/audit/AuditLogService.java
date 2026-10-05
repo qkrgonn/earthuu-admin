@@ -24,4 +24,14 @@ public class AuditLogService {
     public void recordUserAction(UUID actorId, String action, UUID userId, Map<String, Object> metadata) {
         repository.save(AuditLog.record(actorId, action, "USER", userId, metadata));
     }
+
+    public void recordVerificationAction(UUID actorId, String action, UUID verificationId,
+                                         Map<String, Object> metadata) {
+        repository.save(AuditLog.record(actorId, action, "STUDENT_VERIFICATION", verificationId, metadata));
+    }
+
+    public void recordMasterDataAction(UUID actorId, String action, String targetType, UUID targetId,
+                                       Map<String, Object> metadata) {
+        repository.save(AuditLog.record(actorId, action, targetType, targetId, metadata));
+    }
 }

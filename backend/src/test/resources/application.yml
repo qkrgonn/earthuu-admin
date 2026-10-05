@@ -13,3 +13,5 @@ spring:
 app:
   bootstrap-admin:
     enabled: false
+  outbox:
+    fixed-delay-ms: 3600000

@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
     List<AuditLog> findByTargetTypeAndTargetIdOrderByCreatedAtDesc(String targetType, UUID targetId);
+    List<AuditLog> findTop10ByOrderByCreatedAtDesc();
 }

@@ -7,6 +7,7 @@ import com.earthuu.admin.event.repository.EventRepository;
 import com.earthuu.admin.global.audit.AuditLogService;
 import com.earthuu.admin.global.exception.BusinessException;
 import com.earthuu.admin.global.exception.ErrorCode;
+import com.earthuu.admin.notification.service.OutboxPublisher;
 import com.earthuu.admin.report.dto.DispositionHistoryResponse;
 import com.earthuu.admin.report.dto.ReportActionResponse;
 import com.earthuu.admin.report.dto.ReportDetailResponse;
@@ -47,6 +48,7 @@ public class AdminReportService {
     private final UserRestrictionRepository restrictionRepository;
     private final AdminAuthService adminAuthService;
     private final AuditLogService auditLogService;
+    private final OutboxPublisher outboxPublisher;
 
     public AdminReportService(ReportRepository reportRepository,
                               EventDispositionRepository dispositionRepository,
@@ -55,7 +57,8 @@ public class AdminReportService {
                               UserProfileRepository profileRepository,
                               UserRestrictionRepository restrictionRepository,
                               AdminAuthService adminAuthService,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService,
+                              OutboxPublisher outboxPublisher) {
         this.reportRepository = reportRepository;
         this.dispositionRepository = dispositionRepository;
         this.eventRepository = eventRepository;
@@ -64,6 +67,7 @@ public class AdminReportService {
         this.restrictionRepository = restrictionRepository;
         this.adminAuthService = adminAuthService;
         this.auditLogService = auditLogService;
+        this.outboxPublisher = outboxPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -121,6 +125,9 @@ public class AdminReportService {
         metadata.put("reason", reason.trim());
         if (restrictionEndsAt != null) metadata.put("restrictionEndsAt", restrictionEndsAt);
         auditLogService.recordReportAction(actorId, "REPORT_RESOLVED", reportId, metadata);
+        outboxPublisher.enqueueNotification(report.getReporterId(), "REPORT_RESOLVED", "REPORT", reportId,
+                "신고 처리가 완료되었습니다.", "접수한 신고의 처리 결과를 확인해 주세요.",
+                "report-resolved:" + reportId);
         reportRepository.flush();
         return ReportActionResponse.from(report);
     }

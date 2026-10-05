@@ -10,6 +10,7 @@ import com.earthuu.admin.global.exception.BusinessException;
 import com.earthuu.admin.global.exception.ErrorCode;
 import com.earthuu.admin.report.repository.UserProfileRepository;
 import com.earthuu.admin.report.repository.UserRestrictionRepository;
+import com.earthuu.admin.notification.service.OutboxPublisher;
 import com.earthuu.admin.user.dto.*;
 import com.earthuu.admin.user.entity.UserStatusAction;
 import com.earthuu.admin.user.entity.UserStatusActionType;
@@ -34,6 +35,7 @@ public class AdminUserService {
     private final UserStatusActionRepository statusActionRepository;
     private final AdminAuthService adminAuthService;
     private final AuditLogService auditLogService;
+    private final OutboxPublisher outboxPublisher;
 
     public AdminUserService(AdminUserRepository userRepository,
                             PasswordCredentialRepository credentialRepository,
@@ -41,7 +43,8 @@ public class AdminUserService {
                             UserRestrictionRepository restrictionRepository,
                             UserStatusActionRepository statusActionRepository,
                             AdminAuthService adminAuthService,
-                            AuditLogService auditLogService) {
+                            AuditLogService auditLogService,
+                            OutboxPublisher outboxPublisher) {
         this.userRepository = userRepository;
         this.credentialRepository = credentialRepository;
         this.profileRepository = profileRepository;
@@ -49,6 +52,7 @@ public class AdminUserService {
         this.statusActionRepository = statusActionRepository;
         this.adminAuthService = adminAuthService;
         this.auditLogService = auditLogService;
+        this.outboxPublisher = outboxPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -88,6 +92,8 @@ public class AdminUserService {
         saveStatusAction(user, actorId, UserStatusActionType.SUSPENDED, previous, reason.trim());
         auditLogService.recordUserAction(actorId, "USER_SUSPENDED", userId,
                 Map.of("previousStatus", previous.name(), "newStatus", user.getStatus().name(), "reason", reason.trim()));
+        outboxPublisher.enqueueNotification(userId, "ACCOUNT_SUSPENDED", "USER", userId,
+                "계정이 정지되었습니다.", "운영 정책에 따라 계정이 정지되었습니다.", "user-suspended:" + userId);
         userRepository.flush();
         return UserActionResponse.from(user);
     }
@@ -102,6 +108,8 @@ public class AdminUserService {
         saveStatusAction(user, actorId, UserStatusActionType.RESTORED, previous, reason.trim());
         auditLogService.recordUserAction(actorId, "USER_RESTORED", userId,
                 Map.of("previousStatus", previous.name(), "newStatus", user.getStatus().name(), "reason", reason.trim()));
+        outboxPublisher.enqueueNotification(userId, "ACCOUNT_RESTORED", "USER", userId,
+                "계정이 복구되었습니다.", "계정 이용이 다시 활성화되었습니다.", "user-restored:" + userId);
         userRepository.flush();
         return UserActionResponse.from(user);
     }
@@ -126,6 +134,9 @@ public class AdminUserService {
         restriction.revoke(actorId, reason.trim(), now);
         auditLogService.recordUserAction(actorId, "USER_RESTRICTION_REVOKED", userId,
                 Map.of("restrictionId", restrictionId, "reason", reason.trim()));
+        outboxPublisher.enqueueNotification(userId, "RESTRICTION_REVOKED", "USER_RESTRICTION", restrictionId,
+                "활동 제한이 해제되었습니다.", "계정의 활동 제한이 해제되었습니다.",
+                "restriction-revoked:" + restrictionId);
         restrictionRepository.flush();
         return UserRestrictionResponse.from(restriction, now);
     }
