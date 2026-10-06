@@ -28,6 +28,9 @@ export const PAGE_LABELS: Record<string, string> = {
   "my-reviews": "내 관리자 활동",
   reports: "신고 관리",
   users: "사용자 관리",
+  verifications: "학생 인증 관리",
+  "master-data": "기준 정보 관리",
+  notifications: "알림 관리",
   stats: "통계",
   login: "관리자 로그인",
 };

@@ -57,7 +57,8 @@ npm run dev
 - 심사 이력·감사 로그: PostgreSQL 트랜잭션 저장
 - 이벤트 동시 처리: `events.revision` 기반 낙관적 잠금
 - Swagger UI: <http://localhost:8080/swagger-ui.html>
-- 신고·통계: 아직 프론트 예시 데이터
+- 사용자·학생 인증·기준 정보·통계·알림: PostgreSQL API
+- 신고 화면: 아직 프론트 예시 데이터
 
 이벤트는 `events.moderation_status`와 `lifecycle_status`를 별도로 표현합니다. 원문 버전은 `event_versions`, 심사 이력은 `moderation_actions`, 신청자는 `participations`, 관리자 작업은 `audit_logs`에 저장합니다.
 

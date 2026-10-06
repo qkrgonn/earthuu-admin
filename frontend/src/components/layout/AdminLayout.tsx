@@ -11,6 +11,9 @@ const menu = [
   ["events", "이벤트 관리"],
   ["reports", "신고 관리"],
   ["users", "사용자 관리"],
+  ["verifications", "학생 인증"],
+  ["master-data", "기준 정보"],
+  ["notifications", "알림 관리"],
   ["stats", "통계"],
 ] as const;
 
@@ -33,7 +36,7 @@ export function AdminLayout() {
       </NavLink>)}</nav>
       <div className="sidebar-bottom">
         <div className="demo-label">API 연결됨</div>
-        <p>이벤트·사용자 관리 기능은 Spring API와<br />PostgreSQL 데이터를 사용합니다.</p>
+        <p>관리자 기능은 Spring API와<br />PostgreSQL 데이터를 사용합니다.</p>
         <div className="profile">
           <span className="avatar">A</span>
           <span className="profile-copy"><b>관리자</b><small>{session?.email ?? "ADMIN"}</small></span>
