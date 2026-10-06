@@ -5,7 +5,7 @@
 # 로컬 문서·이미지
 docs/*.png
 docs/project-progress.md
-downloads/backend-study-guide.md
+downloads/*.md
 
 # Spring Boot / Maven
 backend/target/
